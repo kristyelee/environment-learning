@@ -22,13 +22,17 @@ def evaluate():
     total_examples = 0
     training_accuracies = []
     start_time = datetime.now()
+    count = 0
+
     for session_id in dataset.get_session_ids():
         model = Model()
         session_correct = 0
         session_examples = 0
         session_correct_list = []
+        session_data_count = 0
 
         for state, language, target_output in tqdm.tqdm(dataset.get_session_data(session_id)):
+            print(count + " : " + session_id + " : " + session_data_count)
             predicted = model.predict(state, language)
 
             if predicted == target_output:
@@ -40,11 +44,14 @@ def evaluate():
             
             model.update(state, language, target_output)
             training_accuracies.append(model.training_accuracy())
+            session_data_count += 1
 
         if FLAGS.correctness_log is not None:
             with open(FLAGS.correctness_log, 'a') as f:
                 f.write(' '.join(str(c) for c in session_correct_list) + '\n')
 
+        count += 1
+        
         print(datetime.now()-start_time, session_id, session_correct/session_examples)
         total_correct += session_correct
         total_examples += session_examples

@@ -16,24 +16,44 @@ flags.DEFINE_bool('batch', False, 'use batch evaluation (only supported with som
 flags.DEFINE_bool('batch_increasing', False, 'use batch evaluation with larger and larger data sizes')
 flags.DEFINE_string('correctness_log', 'dataset_sessions.txt', 'file to write log indicating which predictions were correct')
 
-def topHundredCandidates():
-    session_id = list(dataset.get_session_ids()[0])
-    model = Model()
-    session_correct = 0
+def topKCandidates(k):
+
+    #sessions will have key-value pairs of session_id, session_data
+    sessions = dict()
+   
+    # session_correct = 0
     # session_examples = 0
-    candidates = []
+    # candidates = []
 
-    for state, language, target_output in tqdm.tqdm(dataset.get_session_data(session_id)):
-        while (len(candidates) < 100):
-            predicted, discreteRepresentation = model.predictedOutputAndDiscreteTransformation(state, language)
-            if predicted == target_output:
-                session_correct += 1
-                print(session_correct)
-                candidates.append(discreteRepresentation)
+    for session_id in dataset.get_session_ids():
+        
+        # Each session has session_data. session_data has key-value pairs of (state, language, target_output) with the top k candidates for that (state, language, target_output)
+        session_data = dict()
+        model = Model()
 
-        break # Use 1 state, language, target_output
+        for state, language, target_output in tqdm.tqdm(dataset.get_session_data(session_id)):
+            
+            # Top K candidates for (state, language, target output)
+            candidates = []
+            
+            while (len(candidates) < k): #Note to self: change break condition because we want likelihood of discrete representation (input for decoder) returning the prediction
+                predicted, discreteRepresentation = model.predictedOutputAndDiscreteTransformation(state, language)
+                if predicted == target_output:
+                    candidates.append(discreteRepresentation)
 
-    return candidates
+            
+            tup = (state, language, target_output)
+
+            # Add top K candidates list for this (state, language, target output) to session_data
+            session_data[tup] = candidates
+
+            # Update model, as is done in evaluate() in evaluate.py
+            model.update(state, language, target_output)
+
+        # Append all session_data to sessions
+        sessions[session_id] = session_data
+
+    return sessions
 
 if __name__ == '__main__':
     print(sys.argv)
