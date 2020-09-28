@@ -17,9 +17,9 @@ flags.DEFINE_bool('batch_increasing', False, 'use batch evaluation with larger a
 flags.DEFINE_string('correctness_log', 'dataset_sessions.txt', 'file to write log indicating which predictions were correct')
 
 def topHundredCandidates():
-    session_id = dataset.get_session_ids()[0]
+    session_id = list(dataset.get_session_ids()[0])
     model = Model()
-    # session_correct = 0
+    session_correct = 0
     # session_examples = 0
     candidates = []
 
@@ -28,6 +28,7 @@ def topHundredCandidates():
             predicted, discreteRepresentation = model.predictedOutputAndDiscreteTransformation(state, language)
             if predicted == target_output:
                 session_correct += 1
+                print(session_correct)
                 candidates.append(discreteRepresentation)
 
         break # Use 1 state, language, target_output
