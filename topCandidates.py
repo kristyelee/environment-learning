@@ -47,4 +47,4 @@ if __name__ == '__main__':
             pretrain.train()
         Model = our_model.Model
     print("test")
-    print(topHundredCandidates)
+    print(topHundredCandidates())
