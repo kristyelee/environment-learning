@@ -16,7 +16,19 @@ flags.DEFINE_bool('batch', False, 'use batch evaluation (only supported with som
 flags.DEFINE_bool('batch_increasing', False, 'use batch evaluation with larger and larger data sizes')
 flags.DEFINE_string('correctness_log', 'dataset_sessions.txt', 'file to write log indicating which predictions were correct')
 
-def topKCandidates(k):
+def topKCandidates(k, state, language, target_output):
+    # Top K candidates for (state, language, target output)
+    candidates = []
+    
+    while (len(candidates) < k): #Note to self: change break condition because we want likelihood of discrete representation (input for decoder) returning the prediction
+        predicted, discreteRepresentation = model.predictedOutputAndDiscreteTransformation(state, language)
+        if predicted == target_output:
+            candidates.append(discreteRepresentation)
+
+    return candidates
+
+
+def allTopKCandidates(k):
 
     #sessions will have key-value pairs of session_id, session_data
     sessions = dict()
@@ -31,21 +43,11 @@ def topKCandidates(k):
         session_data = dict()
         model = Model()
 
-        for state, language, target_output in tqdm.tqdm(dataset.get_session_data(session_id)):
-            
-            # Top K candidates for (state, language, target output)
-            candidates = []
-            
-            while (len(candidates) < k): #Note to self: change break condition because we want likelihood of discrete representation (input for decoder) returning the prediction
-                predicted, discreteRepresentation = model.predictedOutputAndDiscreteTransformation(state, language)
-                if predicted == target_output:
-                    candidates.append(discreteRepresentation)
-
-            
+        for state, language, target_output in tqdm.tqdm(dataset.get_session_data(session_id)):            
             tup = (state, language, target_output)
 
             # Add top K candidates list for this (state, language, target output) to session_data
-            session_data[tup] = candidates
+            session_data[tup] = topKCandidates(k, state, language, target_output)
 
             # Update model, as is done in evaluate() in evaluate.py
             model.update(state, language, target_output)
@@ -67,4 +69,4 @@ if __name__ == '__main__':
             pretrain.train()
         Model = our_model.Model
     print("test")
-    print(topHundredCandidates())
+    print(allTopKCandidates())
