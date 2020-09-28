@@ -49,6 +49,17 @@ class Model(object):
         prediction = self.decoder.forward(state_variable, decoder_input)
         return dataset.output_from_variable(prediction, state)
 
+    def predictedOutputAndDiscreteTransformation(self, state, command):
+        self.language_module.eval()
+        self.decoder.eval()
+        token_ids = self.vocab.token_ids(command)
+        command_variable = torch.LongTensor(token_ids).unsqueeze(0).to(device)
+        state_variable = dataset.state_to_variable(state).to(device)
+        encoder_output = self.language_module.forward(command_variable)
+        decoder_input = encoder_output if FLAGS.continuous_message else discrete_util.discrete_transformation(encoder_output)
+        prediction = self.decoder.forward(state_variable, decoder_input)
+        return dataset.output_from_variable(prediction, state), decoder_input
+
     def optimizer_step(self):
         self.language_module.train()
         self.decoder.train()
