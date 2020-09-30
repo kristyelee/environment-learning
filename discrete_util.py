@@ -24,6 +24,7 @@ def discretize(logits, dim):
 def gumbel_softmax(logits, dim, temp=1, straight_through=True):
     y = logits + sample_gumbel(logits.size(), device=logits.device)
     continuous = F.softmax(y/temp, dim)
+    print(continuous)
     if straight_through:
         discrete = discretize(continuous, dim)
         return continuous + (discrete - continuous).detach()
