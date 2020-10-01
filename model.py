@@ -46,6 +46,7 @@ class Model(object):
         state_variable = dataset.state_to_variable(state).to(device)
         encoder_output = self.language_module.forward(command_variable)
         decoder_input = encoder_output if FLAGS.continuous_message else discrete_util.discrete_transformation(encoder_output)
+        #print(decoder_input)
         prediction = self.decoder.forward(state_variable, decoder_input)
         return dataset.output_from_variable(prediction, state)
 

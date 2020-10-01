@@ -34,6 +34,7 @@ def evaluate():
         for state, language, target_output in tqdm.tqdm(dataset.get_session_data(session_id)):
             print(count + " : " + session_id + " : " + session_data_count)
             predicted = model.predict(state, language)
+            #print(predicted)
 
             if predicted == target_output:
                 session_correct += 1
@@ -52,6 +53,9 @@ def evaluate():
 
         count += 1
         
+        with open("dataset_sessions_accuracties.txt", 'a') as f:
+            f.write(str(datetime.now()-start_time) + " " + str(session_id) + " " + str(session_correct/session_examples))
+
         print(datetime.now()-start_time, session_id, session_correct/session_examples)
         total_correct += session_correct
         total_examples += session_examples
