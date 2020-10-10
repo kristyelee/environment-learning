@@ -32,7 +32,7 @@ def evaluate():
         session_data_count = 0
 
         for state, language, target_output in tqdm.tqdm(dataset.get_session_data(session_id)):
-            print(count + " : " + session_id + " : " + session_data_count)
+            print(str(count) + " : " + str(session_id) + " : " + str(session_data_count))
             predicted = model.predict(state, language)
             #print(predicted)
 

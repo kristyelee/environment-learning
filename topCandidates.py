@@ -19,12 +19,14 @@ flags.DEFINE_string('correctness_log', 'dataset_sessions.txt', 'file to write lo
 def topKCandidates(k, state, language, target_output):
     # Top K candidates for (state, language, target output)
     candidates = []
-    
-    while (len(candidates) < k): #Note to self: change break condition because we want likelihood of discrete representation (input for decoder) returning the prediction
-        predicted, discreteRepresentation = model.predictedOutputAndDiscreteTransformation(state, language)
-        if predicted == target_output:
-            candidates.append(discreteRepresentation)
+    target_variable = dataset.output_to_variable(target, state).to(device)
 
+    while (len(candidates) < 300): #Note to self: change break condition because we want likelihood of discrete representation (input for decoder) returning the prediction
+        predicted, discreteRepresentation, likelihood = model.predictedOutputAndDiscreteTransformation(state, language)
+        if predicted == target_output:
+            candidates.append((discreteRepresentation, likelihood))
+
+    candidates.sort(key=lambda x: )
     return candidates
 
 
