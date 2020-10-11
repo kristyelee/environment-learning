@@ -42,7 +42,6 @@ def topKCandidates(k, state, language, target_output, model):
 
 
 def allTopKCandidates(k):
-    #print(k)
     #sessions will have key-value pairs of session_id, session_data
     sessions = dict()
    
@@ -55,12 +54,12 @@ def allTopKCandidates(k):
         # Each session has session_data. session_data has key-value pairs of (state, language, target_output) with the top k candidates for that (state, language, target_output)
         session_data = dict()
         model = Model()
-        count = 1
+        num = 1
 
         for state, language, target_output in tqdm.tqdm(dataset.get_session_data(session_id)): 
-            new_state = tuple([tuple(state[i]) for i in range(len(state))]) 
-            new_target_output = tuple([tuple(target_output[i]) for i in range(len(target_output))])          
-            tup = (new_state, language, new_target_output)
+            tuple_state = tuple([tuple(state[i]) for i in range(len(state))]) 
+            tuple_target_output = tuple([tuple(target_output[i]) for i in range(len(target_output))])          
+            tup = (tuple_state, language, tuple_target_output)
             # print(tup)
 
             # Add top K candidates list for this (state, language, target output) to session_data
@@ -74,8 +73,8 @@ def allTopKCandidates(k):
 
             for i in range(len(session_data[tup])):
                 candidate = session_data[tup][i].cpu().detach().numpy()
-                np.savetxt("./top_candidates/" + str(session_id) + "/" + str(count) + "/" + str(i) + ".txt", candidate)
-                np.save("./top_candidates/" + str(session_id) + "/" + str(count) + "/" + str(i), candidate)
+                np.savetxt("./top_candidates/" + str(session_id) + "/" + str(num) + "/" + str(i) + ".txt", candidate)
+                np.save("./top_candidates/" + str(session_id) + "/" + str(num) + "/" + str(i), candidate)
 
             # Update model, as is done in evaluate() in evaluate.py
             model.update(state, language, target_output)
