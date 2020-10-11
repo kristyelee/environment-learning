@@ -8,6 +8,7 @@ import baseline_model
 import dataset
 import tqdm
 import torch
+import time
 
 from absl import flags
 FLAGS = flags.FLAGS
@@ -20,23 +21,27 @@ def topKCandidates(k, state, language, target_output, model):
     # Top K candidates for (state, language, target output)
     candidateTuples = []
 
-    while (len(candidateTuples) < k+20):
+    while len(candidateTuples) < k+20:
         predicted, discreteRepresentation, likelihood = model.predictedOutputAndDiscreteTransformation(state, language)
         if predicted == target_output:
+            print(likelihood)
             candidateTuples.append((discreteRepresentation, likelihood))
 
     candidateTuples.sort(reverse=True, key=lambda x: x[1])
     candidates = []
+    print()
+
     for i in range(k):
         print(candidateTuples[i][1])
         candidates.append(candidateTuples[i][0])
 
+    time.sleep(10)
     print(candidates)
     return candidates
 
 
 def allTopKCandidates(k):
-
+    print(k)
     #sessions will have key-value pairs of session_id, session_data
     sessions = dict()
    
@@ -49,15 +54,26 @@ def allTopKCandidates(k):
         # Each session has session_data. session_data has key-value pairs of (state, language, target_output) with the top k candidates for that (state, language, target_output)
         session_data = dict()
         model = Model()
+        count = 1
 
-        for state, language, target_output in tqdm.tqdm(dataset.get_session_data(session_id)):            
-            tup = (state, language, target_output)
+        for state, language, target_output in tqdm.tqdm(dataset.get_session_data(session_id)): 
+            new_state = tuple([tuple(state[i]) for i in range(len(state))]) 
+            new_target_output = tuple([tuple(target_output[i]) for i in range(len(target_output))])          
+            tup = (new_state, language, new_target_output)
+            # print(tup)
 
             # Add top K candidates list for this (state, language, target output) to session_data
             session_data[tup] = topKCandidates(k, state, language, target_output, model)
 
+            # Save file
+            for i in range(session_data[tup]):
+                candidate = session_data[tup][i].cpu().detach().numpy()
+                np.savetxt("./top_candidates/session_id/" + str(count) + "/" + str(i) + ".txt", candidate)
+
             # Update model, as is done in evaluate() in evaluate.py
             model.update(state, language, target_output)
+
+            count += 1
 
         # Append all session_data to sessions
         sessions[session_id] = session_data
