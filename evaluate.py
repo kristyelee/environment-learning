@@ -57,7 +57,7 @@ def evaluate():
 
         count += 1
         
-        with open("dataset_sessions_accuracties.txt", 'a') as f:
+        with open("dataset_sessions_accuracies.txt", 'a') as f:
             f.write(str(datetime.now()-start_time) + " " + str(session_id) + " " + str(session_correct/session_examples) + " \n")
         print(datetime.now()-start_time, session_id, session_correct/session_examples)
         total_correct += session_correct

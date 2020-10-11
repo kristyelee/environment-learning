@@ -17,16 +17,16 @@ def sample_gumbel(shape, device, eps=1e-20):
 def discretize(logits, dim):
     # make one-hot for mode of a distribution
     _, am = torch.max(logits, dim, keepdim=True)
-    print(am)
+    # print(am)
     result = torch.zeros_like(logits)
-    print(results)
+    # print(result)
     result.scatter_(dim, am, 1)
     return result
 
 def gumbel_softmax(logits, dim, temp=1, straight_through=True):
     y = logits + sample_gumbel(logits.size(), device=logits.device)
     continuous = F.softmax(y/temp, dim)
-    print(logits)
+    #print(logits)
     #print(continuous)
     #np.save('gumbel_softmax', continuous.cpu().detach().numpy())
     if straight_through:

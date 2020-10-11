@@ -57,7 +57,7 @@ class Model(object):
         command_variable = torch.LongTensor(token_ids).unsqueeze(0).to(device)
         state_variable = dataset.state_to_variable(state).to(device)
         encoder_output = self.language_module.forward(command_variable)
-        decoder_input, likelihood = encoder_output if FLAGS.continuous_message else discrete_util.discrete_transformation_with_likelihood(encoder_output)
+        decoder_input, likelihood = discrete_util.discrete_transformation_with_likelihood(encoder_output)
         prediction = self.decoder.forward(state_variable, decoder_input)
         return dataset.output_from_variable(prediction, state), decoder_input, likelihood
 

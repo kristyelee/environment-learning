@@ -16,17 +16,22 @@ flags.DEFINE_bool('batch', False, 'use batch evaluation (only supported with som
 flags.DEFINE_bool('batch_increasing', False, 'use batch evaluation with larger and larger data sizes')
 flags.DEFINE_string('correctness_log', 'dataset_sessions.txt', 'file to write log indicating which predictions were correct')
 
-def topKCandidates(k, state, language, target_output):
+def topKCandidates(k, state, language, target_output, model):
     # Top K candidates for (state, language, target output)
-    candidates = []
-    target_variable = dataset.output_to_variable(target, state).to(device)
+    candidateTuples = []
 
-    while (len(candidates) < 300): #Note to self: change break condition because we want likelihood of discrete representation (input for decoder) returning the prediction
+    while (len(candidateTuples) < k+20):
         predicted, discreteRepresentation, likelihood = model.predictedOutputAndDiscreteTransformation(state, language)
         if predicted == target_output:
-            candidates.append((discreteRepresentation, likelihood))
+            candidateTuples.append((discreteRepresentation, likelihood))
 
-    candidates.sort(key=lambda x: )
+    candidateTuples.sort(reverse=True, key=lambda x: x[1])
+    candidates = []
+    for i in range(k):
+        print(candidateTuples[i][1])
+        candidates.append(candidateTuples[i][0])
+
+    print(candidates)
     return candidates
 
 
@@ -49,7 +54,7 @@ def allTopKCandidates(k):
             tup = (state, language, target_output)
 
             # Add top K candidates list for this (state, language, target output) to session_data
-            session_data[tup] = topKCandidates(k, state, language, target_output)
+            session_data[tup] = topKCandidates(k, state, language, target_output, model)
 
             # Update model, as is done in evaluate() in evaluate.py
             model.update(state, language, target_output)
@@ -71,4 +76,4 @@ if __name__ == '__main__':
             pretrain.train()
         Model = our_model.Model
     print("test")
-    print(allTopKCandidates())
+    print(allTopKCandidates(20))
