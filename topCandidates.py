@@ -9,6 +9,7 @@ import dataset
 import tqdm
 import torch
 import time
+import os
 
 from absl import flags
 FLAGS = flags.FLAGS
@@ -24,24 +25,24 @@ def topKCandidates(k, state, language, target_output, model):
     while len(candidateTuples) < k+20:
         predicted, discreteRepresentation, likelihood = model.predictedOutputAndDiscreteTransformation(state, language)
         if predicted == target_output:
-            print(likelihood)
+            #print(likelihood)
             candidateTuples.append((discreteRepresentation, likelihood))
 
     candidateTuples.sort(reverse=True, key=lambda x: x[1])
     candidates = []
-    print()
+    #print()
 
     for i in range(k):
-        print(candidateTuples[i][1])
+        #print(candidateTuples[i][1])
         candidates.append(candidateTuples[i][0])
 
-    time.sleep(10)
-    print(candidates)
+    #time.sleep(10)
+    #print(candidates)
     return candidates
 
 
 def allTopKCandidates(k):
-    print(k)
+    #print(k)
     #sessions will have key-value pairs of session_id, session_data
     sessions = dict()
    
@@ -66,9 +67,15 @@ def allTopKCandidates(k):
             session_data[tup] = topKCandidates(k, state, language, target_output, model)
 
             # Save file
-            for i in range(session_data[tup]):
+            if not os.path.exists("./top_candidates/" + str(session_id)):
+                os.makedirs("./top_candidates/" + str(session_id))
+            if not os.path.exists("./top_candidates/" + str(session_id) + "/" + str(count)):
+                os.makedirs("./top_candidates/" + str(session_id) + "/" + str(count))
+
+            for i in range(len(session_data[tup])):
                 candidate = session_data[tup][i].cpu().detach().numpy()
-                np.savetxt("./top_candidates/session_id/" + str(count) + "/" + str(i) + ".txt", candidate)
+                np.savetxt("./top_candidates/" + str(session_id) + "/" + str(count) + "/" + str(i) + ".txt", candidate)
+                np.save("./top_candidates/" + str(session_id) + "/" + str(count) + "/" + str(i), candidate)
 
             # Update model, as is done in evaluate() in evaluate.py
             model.update(state, language, target_output)
