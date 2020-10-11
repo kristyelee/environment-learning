@@ -21,11 +21,13 @@ flags.DEFINE_string('correctness_log', 'dataset_sessions.txt', 'file to write lo
 def topKCandidates(k, state, language, target_output, model):
     # Top K candidates for (state, language, target output)
     candidateTuples = []
+    seenCandidates = set()
 
     while len(candidateTuples) < k+20:
         predicted, discreteRepresentation, likelihood = model.predictedOutputAndDiscreteTransformation(state, language)
-        if predicted == target_output:
+        if predicted == target_output and discreteRepresentation not in seenCandidates:
             #print(likelihood)
+            seenCandidates.add(discreteRepresentation)
             candidateTuples.append((discreteRepresentation, likelihood))
 
     candidateTuples.sort(reverse=True, key=lambda x: x[1])

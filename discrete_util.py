@@ -39,11 +39,8 @@ def gumbel_softmax(logits, dim, temp=1, straight_through=True):
 def gumbel_softmax_with_likelihood(logits, dim, temp=1, straight_through=True):
     y = logits + sample_gumbel(logits.size(), device=logits.device)
     continuous = F.softmax(y/temp, dim)
-    #print(continuous)
-    #np.save('gumbel_softmax', continuous.cpu().detach().numpy())
     if straight_through:
         discrete = discretize(continuous, dim)
-        #print(discrete)
         return continuous + (discrete - continuous).detach(), torch.sum(torch.log(torch.sum(discrete*continuous, axis = -1)), axis = -1)
     else:
         return continuous
