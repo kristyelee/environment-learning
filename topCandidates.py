@@ -57,7 +57,7 @@ def topKCandidatesAccuracy(k, n):
             tup = (tuple_state, language, tuple_target_output)
 
             # Add top K candidates list for this (state, language, target output) to session_data
-            k_candidate_success = stateTopKCandidates(k, state, language, target_output, model)
+            k_candidate_success = topKCandidatesHelper(k, state, language, target_output, model)
 
             if k_candidate_success != float('inf'):
                 number_accurate += 1
