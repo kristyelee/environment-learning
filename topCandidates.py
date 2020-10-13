@@ -25,10 +25,10 @@ def topKCandidates(k, state, language, target_output, model):
 
     while len(candidateTuples) < k+20:
         predicted, discreteRepresentation, likelihood = model.predictedOutputAndDiscreteTransformation(state, language)
-        if predicted == target_output and discreteRepresentation not in seenCandidates:
+        if discreteRepresentation not in seenCandidates:
             #print(likelihood)
             seenCandidates.add(discreteRepresentation)
-            candidateTuples.append((discreteRepresentation, likelihood))
+            candidateTuples.append((discreteRepresentation, likelihood, predicted))
 
     candidateTuples.sort(reverse=True, key=lambda x: x[1])
     candidates = []
@@ -36,57 +36,49 @@ def topKCandidates(k, state, language, target_output, model):
 
     for i in range(k):
         #print(candidateTuples[i][1])
-        candidates.append(candidateTuples[i][0])
-
-    #time.sleep(10)
-    #print(candidates)
-    return candidates
+        candidates.append((candidateTuples[i][0], candidateTuples[i][2]))
 
 
-def allTopKCandidates(k):
+    for i in range(k):
+        if candidates[i][1] == target_output:
+            return True
+
+    return False
+
+
+def allTopKCandidates(k, n):
     #sessions will have key-value pairs of session_id, session_data
     sessions = dict()
-   
-    # session_correct = 0
-    # session_examples = 0
-    # candidates = []
 
     for session_id in dataset.get_session_ids():
-        
-        # Each session has session_data. session_data has key-value pairs of (state, language, target_output) with the top k candidates for that (state, language, target_output)
-        session_data = dict()
+        count = 0
+        number_accurate = 0
         model = Model()
-        num = 1
 
         for state, language, target_output in tqdm.tqdm(dataset.get_session_data(session_id)): 
+            if count == n:
+                print("Top K accuracy: " + str(number_accurate / n))
+                return
+
             tuple_state = tuple([tuple(state[i]) for i in range(len(state))]) 
             tuple_target_output = tuple([tuple(target_output[i]) for i in range(len(target_output))])          
             tup = (tuple_state, language, tuple_target_output)
-            # print(tup)
 
             # Add top K candidates list for this (state, language, target output) to session_data
-            session_data[tup] = topKCandidates(k, state, language, target_output, model)
+            k_candidate_success = topKCandidates(k, state, language, target_output, model)
 
-            # Save file
-            if not os.path.exists("./top_candidates/" + str(session_id)):
-                os.makedirs("./top_candidates/" + str(session_id))
-            if not os.path.exists("./top_candidates/" + str(session_id) + "/" + str(count)):
-                os.makedirs("./top_candidates/" + str(session_id) + "/" + str(count))
-
-            for i in range(len(session_data[tup])):
-                candidate = session_data[tup][i].cpu().detach().numpy()
-                np.savetxt("./top_candidates/" + str(session_id) + "/" + str(num) + "/" + str(i) + ".txt", candidate)
-                np.save("./top_candidates/" + str(session_id) + "/" + str(num) + "/" + str(i), candidate)
+            if k_candidate_success:
+                number_accurate += 1
 
             # Update model, as is done in evaluate() in evaluate.py
             model.update(state, language, target_output)
 
             count += 1
 
-        # Append all session_data to sessions
-        sessions[session_id] = session_data
+    #     # Append all session_data to sessions
+    #     sessions[session_id] = number_accurate / n
 
-    return sessions
+    # return sessions
 
 if __name__ == '__main__':
     print(sys.argv)
