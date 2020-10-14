@@ -45,6 +45,17 @@ def gumbel_softmax_with_likelihood(logits, dim, temp=1, straight_through=True):
     else:
         return continuous
 
+def gumbel_softmax_with_likelihood_batched(logits, dim, num_batch, temp=1, straight_through=True):
+    samples = []
+    for i in range(num_batch):
+        samples.append(logits + sample_gumbel(logits.size(), device=logits.device))
+    continuous = [F.softmax(y/temp, dim) for y in y]
+    if straight_through:
+        discrete = [discretize(continuous_vector, dim) for continuous_vector in continuous]
+        return [continuous_vector + (discrete_vector - continuous_vector).detach() for discrete_vector, continuous_vector in zip(discrete, continuous)], [torch.sum(torch.log(torch.sum(discrete_vector*continuous_vector, axis = -1)), axis = -1) for discrete_vector, continuous_vector in zip(discrete, continuous)]
+    else:
+        return continuous
+
 def sample_multinomial(logits, dim):
     y = logits + sample_gumbel(logits.size(), device=logits.device)
     return discretize(y, dim)
@@ -74,6 +85,15 @@ def discrete_transformation_with_likelihood(variable):
     x = variable.view(-1, message_size, message_symbols)
     x, likelihood = gumbel_softmax_with_likelihood(x,2)
     return x.view(-1, message_size*message_symbols), likelihood
+
+def discrete_transformation_with_likelihood_batched(variable, num_batch):
+    # takes a 2d (batch_size by vector_size) variable and returns another with the same dimensions that has been discretized (in a differentiable way), as well as the likelihood of the sample used
+    message_size = FLAGS.discrete_message_size
+    message_symbols = FLAGS.discrete_message_symbols
+    assert len(variable.size()) == 2 and variable.size()[1] == message_size*message_symbols
+    x = variable.view(-1, message_size, message_symbols)
+    x, likelihood = gumbel_softmax_with_likelihood(x,2, num_batch)
+    return [v.view(-1, message_size*message_symbols) for v in x], likelihood
 
 def kl_flattened(variable):
     message_size = FLAGS.discrete_message_size

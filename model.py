@@ -61,6 +61,19 @@ class Model(object):
         prediction = self.decoder.forward(state_variable, decoder_input)
         return dataset.output_from_variable(prediction, state), decoder_input, likelihood
 
+
+    def predictedOutputAndDiscreteTransformationBatched(self, state, command, num_batch = 20):
+        self.language_module.eval()
+        self.decoder.eval()
+        token_ids = self.vocab.token_ids(command)
+        command_variable = torch.LongTensor(token_ids).unsqueeze(0).to(device)
+        state_variable = dataset.state_to_variable(state).to(device)
+        encoder_output = self.language_module.forward(command_variable)
+        decoder_input, likelihood = discrete_util.discrete_transformation_with_likelihood_batched(encoder_output, num_batch)
+        prediction = [self.decoder.forward(state_variable, d_input) for d_input in decoder_input]
+        return [dataset.output_from_variable(pred, state) for pred in prediction], decoder_input, likelihood
+
+
     def optimizer_step(self):
         self.language_module.train()
         self.decoder.train()
