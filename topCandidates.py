@@ -105,7 +105,7 @@ def topKCandidatesAccuracyPlot(k, n):
         model = Model()
 
         for state, language, target_output in tqdm.tqdm(dataset.get_session_data(session_id)): 
-            if count == n:
+            if count == 2:
                 break
 
             tuple_state = tuple([tuple(state[i]) for i in range(len(state))]) 
@@ -216,4 +216,4 @@ if __name__ == '__main__':
             print('No pretrained model found with prefix "%s"; running pretraining' % FLAGS.pretrain_prefix)
             pretrain.train()
         Model = our_model.Model
-    topKCandidatesAccuracy(100, 300)
+    topKCandidatesAccuracyPlot(100, 300)
