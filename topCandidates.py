@@ -105,7 +105,7 @@ def topKCandidatesAccuracyPlot(k, n):
         model = Model()
 
         for state, language, target_output in tqdm.tqdm(dataset.get_session_data(session_id)): 
-            if count == 2:
+            if count == 50:
                 break
 
             tuple_state = tuple([tuple(state[i]) for i in range(len(state))]) 
