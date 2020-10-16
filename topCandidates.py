@@ -124,7 +124,7 @@ def topKCandidatesAccuracyPlot(k, n):
             model.update(state, language, target_output)
 
             count += 1
-        
+        break
 
     topKAccuracy = [topKAccuracy[i] / count for i in range(len(topKAccuracy))]
 
