@@ -46,7 +46,7 @@ def topKCandidatesPlot(state, language, target_output, model):
 
     count = []
     
-    for k in range(5,20):
+    for k in range(5,201):
         found = False
         candidateTuples = []
         seenCandidates = set()
@@ -114,8 +114,11 @@ def topKCandidatesAccuracyPlot(k, n):
 
             # Add top K candidates list for this (state, language, target output) to session_data
             k_candidate_success = topKCandidatesPlot(state, language, target_output, model)
-
-            topKAccuracy = [x + y for x, y in zip(topKAccuracy, k_candidate_success)]
+            
+            if topKAccuracy = []:
+                topKAccuracy = k_candidate_success
+            else:
+                topKAccuracy = [x + y for x, y in zip(topKAccuracy, k_candidate_success)]
 
             # Update model, as is done in evaluate() in evaluate.py
             model.update(state, language, target_output)
@@ -123,7 +126,7 @@ def topKCandidatesAccuracyPlot(k, n):
             count += 1
         
 
-    topKAccuracy /= count
+    topKAccuracy = [topKAccuracy[i] / count for i in range(len(topKAccuracy))]
 
 
     fig, ax1 = plt.subplots()
