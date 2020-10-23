@@ -17,9 +17,7 @@ def sample_gumbel(shape, device, eps=1e-20):
 def discretize(logits, dim):
     # make one-hot for mode of a distribution
     _, am = torch.max(logits, dim, keepdim=True)
-    # print(am)
     result = torch.zeros_like(logits)
-    # print(result)
     result.scatter_(dim, am, 1)
     return result
 
@@ -49,7 +47,7 @@ def gumbel_softmax_with_likelihood_batched(logits, dim, num_batch, temp=1, strai
     samples = []
     for i in range(num_batch):
         samples.append(logits + sample_gumbel(logits.size(), device=logits.device))
-    continuous = [F.softmax(y/temp, dim) for y in y]
+    continuous = F.softmax(samples/temp, dim)
     if straight_through:
         discrete = [discretize(continuous_vector, dim) for continuous_vector in continuous]
         return [continuous_vector + (discrete_vector - continuous_vector).detach() for discrete_vector, continuous_vector in zip(discrete, continuous)], [torch.sum(torch.log(torch.sum(discrete_vector*continuous_vector, axis = -1)), axis = -1) for discrete_vector, continuous_vector in zip(discrete, continuous)]

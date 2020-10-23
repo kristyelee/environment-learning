@@ -45,29 +45,25 @@ def topKCandidatesPlot(state, language, target_output, model):
     # Top K candidates for (state, language, target output)
 
     count = []
-    
-    for k in range(5,201):
-        found = False
-        candidateTuples = []
-        seenCandidates = set()
+    candidateTuples = []
+    seenCandidates = set()
 
-        while len(candidateTuples) < k+20:
-            predicted, discreteRepresentation, likelihood = model.predictedOutputAndDiscreteTransformation(state, language)
-            if discreteRepresentation not in seenCandidates:
-                #print(likelihood)
-                seenCandidates.add(discreteRepresentation)
-                candidateTuples.append((discreteRepresentation, likelihood, predicted))
+    while len(candidateTuples) < 520:
+        predicted, discreteRepresentation, likelihood = model.predictedOutputAndDiscreteTransformation(state, language)
+        if discreteRepresentation not in seenCandidates:
+            #print(likelihood)
+            seenCandidates.add(discreteRepresentation)
+            candidateTuples.append((discreteRepresentation, likelihood, predicted))
 
-        candidateTuples.sort(reverse=True, key=lambda x: x[1])
+    candidateTuples.sort(reverse=True, key=lambda x: x[1])
 
-        for i in range(k):
-            if candidateTuples[i][2] == target_output:
+    for i in range(k):
+        if candidateTuples[i][2] == target_output:
+            for j in range(k, 501):
                 count.append(1)
-                found = True
-                break
+            return count
 
-        if not found:
-            count.append(0)
+        count.append(0)
 
     return count
 
@@ -97,15 +93,14 @@ def topKCandidatesAccuracyPlot(k, n):
     start_time = datetime.now()
     
     topKAccuracy = []
-    x = list(range(5,201))
+    x = list(range(5,501))
 
     for session_id in dataset.get_session_ids():
         count = 0
-        number_accurate = 0
         model = Model()
 
         for state, language, target_output in tqdm.tqdm(dataset.get_session_data(session_id)): 
-            if count == 50:
+            if count == 65:
                 break
 
             tuple_state = tuple([tuple(state[i]) for i in range(len(state))]) 
@@ -122,7 +117,6 @@ def topKCandidatesAccuracyPlot(k, n):
 
             # Update model, as is done in evaluate() in evaluate.py
             model.update(state, language, target_output)
-
             count += 1
         break
 
